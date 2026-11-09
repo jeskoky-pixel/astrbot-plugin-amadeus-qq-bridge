@@ -9,6 +9,7 @@ from ..compat.astrbot_4294 import (
     ToolSet,
     active_event_registry,
     build_main_agent,
+    agent_message_classes,
 )
 from ..tools.definitions import build_tools
 
@@ -118,6 +119,7 @@ class RunnerService:
         active_event_registry.register_agent_stop_callback(activity.event, stop_callback)
         try:
             if max_steps > 0:
+                self._inject_rich_followups(activity)
                 async for response in activity.runner.step_until_done(max_steps):
                     self._handle_response(activity, response)
             else:
@@ -126,6 +128,7 @@ class RunnerService:
                     if remaining is not None and remaining <= 0:
                         await self.coordinator.stop(activity, "activity_timeout")
                         break
+                    self._inject_rich_followups(activity)
                     async for response in activity.runner.step():
                         self._handle_response(activity, response)
                     if activity.runner.done():
@@ -171,4 +174,25 @@ class RunnerService:
         if value in {"err", "agent_runner_error"}:
             data = getattr(response, "data", None)
             activity.last_error = str(data) if data is not None else "agent runner error"
+
+    def _inject_rich_followups(self, activity: Any) -> None:
+        if not activity.rich_followups or not getattr(activity.runner, "run_context", None):
+            return
+        classes = agent_message_classes()
+        parts: list[Any] = []
+        for segments in activity.rich_followups.values():
+            for segment in segments:
+                if not isinstance(segment, dict):
+                    continue
+                data = segment.get("data") if isinstance(segment.get("data"), dict) else segment
+                typ = str(segment.get("type", "")).lower()
+                source = str(data.get("url") or data.get("file") or "")
+                if typ == "image" and source.startswith(("http://", "https://")):
+                    parts.append(classes["ImageURLPart"](image_url={"url": source}))
+                elif typ in {"record", "audio", "voice"} and source.startswith(("http://", "https://")):
+                    parts.append(classes["AudioURLPart"](audio_url={"url": source}))
+        if parts:
+            parts.insert(0, classes["TextPart"](text="QQ 富消息已作为多模态输入附加在本条消息中。"))
+            activity.runner.run_context.messages.append(classes["Message"](role="user", content=parts))
+        activity.rich_followups.clear()
 

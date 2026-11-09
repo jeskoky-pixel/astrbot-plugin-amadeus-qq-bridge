@@ -120,6 +120,9 @@ class Coordinator:
                 )
                 if ticket is not None:
                     activity.follow_up_tickets[message.message_id] = ticket
+                    rich = serialize_segments(message.segments)
+                    if any(item.get("type") not in {"text", "plain"} for item in rich):
+                        activity.rich_followups[message.message_id] = rich
                     activity.follow_up_count += 1
                     if hasattr(self.db, "mark_prompted"):
                         self.db.mark_prompted(message.message_id, activity.activity_id)
@@ -186,6 +189,7 @@ class Coordinator:
                 if hasattr(self.db, "unprompt"):
                     self.db.unprompt(message_id, activity.activity_id)
             activity.follow_up_tickets.pop(message_id, None)
+            activity.rich_followups.pop(message_id, None)
 
     def pending_after(self, activity: Activity, after_seq: int) -> list[IncomingMessage]:
         rows = self.db.pending_after(activity.umo, activity.activity_id, after_seq)

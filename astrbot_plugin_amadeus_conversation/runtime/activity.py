@@ -37,6 +37,7 @@ class Activity:
     wait_queue: asyncio.Queue[IncomingMessage] = field(default_factory=asyncio.Queue)
     event_by_message_id: dict[str, Any] = field(default_factory=dict)
     follow_up_tickets: dict[str, Any] = field(default_factory=dict)
+    rich_followups: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
     waiter_active: bool = False
     wait_baseline_seq: int = 0
     cancel_event: asyncio.Event = field(default_factory=asyncio.Event)

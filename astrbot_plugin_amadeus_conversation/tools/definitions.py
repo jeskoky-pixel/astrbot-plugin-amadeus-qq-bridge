@@ -35,6 +35,10 @@ def build_tools(activity: Any, coordinator: Any, wait_timeout: int) -> ToolSet:
             return json.dumps({"status": "stopped"}, ensure_ascii=False)
         if messages is None:
             return json.dumps({"status": "timeout"}, ensure_ascii=False)
+        for message in messages:
+            rich = serialize_segments(message.segments)
+            if any(item.get("type") not in {"text", "plain"} for item in rich):
+                activity.rich_followups[message.message_id] = rich
         return json.dumps(
             {
                 "status": "message_received" if messages else "stopped",

@@ -31,6 +31,17 @@ def message_components() -> dict[str, Any]:
     )}
 
 
+def agent_message_classes() -> dict[str, Any]:
+    from astrbot.core.agent.message import AudioURLPart, ImageURLPart, Message, TextPart
+
+    return {
+        "Message": Message,
+        "TextPart": TextPart,
+        "ImageURLPart": ImageURLPart,
+        "AudioURLPart": AudioURLPart,
+    }
+
+
 from astrbot.core.agent.tool import FunctionTool, ToolSet
 from astrbot.core.astr_main_agent import MainAgentBuildConfig, build_main_agent
 from astrbot.core.utils.active_event_registry import active_event_registry
