@@ -1,0 +1,15 @@
+{
+  "enabled": {"type": "bool", "default": true, "description": "启用连续 Activity"},
+  "private_enabled": {"type": "bool", "default": true, "description": "接管私聊"},
+  "group_enabled": {"type": "bool", "default": true, "description": "接管群聊（默认开启）"},
+  "allowed_umos": {"type": "list", "default": [], "description": "非空时仅接管这些 UMO"},
+  "max_agent_steps": {"type": "int", "default": 0, "description": "Agent 步数上限，0 表示不限制"},
+  "tool_call_timeout": {"type": "int", "default": 120},
+  "wait_timeout_seconds": {"type": "int", "default": 0, "description": "等待用户超时秒数，0 表示一直等待"},
+  "max_activity_seconds": {"type": "int", "default": 0, "description": "Activity 生命周期上限，0 表示不限制"},
+  "max_follow_up_messages": {"type": "int", "default": 0, "description": "连续消息上限，0 表示不限制"},
+  "max_outbound_messages": {"type": "int", "default": 0, "description": "出站消息上限，0 表示不限制"},
+  "max_context_length": {"type": "int", "default": -1, "description": "上下文轮数，-1 表示不限制"},
+  "resume_after_restart": {"type": "bool", "default": true, "description": "重启后恢复同一 Activity"},
+  "resume_history_messages": {"type": "int", "default": 120, "description": "恢复时带入的历史消息数量"}
+}
