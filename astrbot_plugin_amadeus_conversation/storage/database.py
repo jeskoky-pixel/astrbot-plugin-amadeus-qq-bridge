@@ -311,4 +311,4 @@ class ActivityDatabase:
             payload = row["payload"] if "payload" in row.keys() else None
             suffix = f" segments={payload}" if payload and payload != "[]" else ""
             lines.append(f"{row['role']}: {row['text'] or ''}{suffix}")
-        return "\\n".join(lines)[-24000:]\n
+        return "\n".join(lines)[-24000:]

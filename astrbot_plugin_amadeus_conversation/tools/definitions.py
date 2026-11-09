@@ -95,4 +95,4 @@ def build_tools(activity: Any, coordinator: Any, wait_timeout: int) -> ToolSet:
                 handler=end_activity,
             ),
         ]
-    )\n
+    )
