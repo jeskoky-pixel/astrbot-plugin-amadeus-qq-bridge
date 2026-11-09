@@ -244,6 +244,13 @@ class ActivityDatabase:
         )
         self.conn.commit()
 
+    def requeue_message(self, message_id: str, activity_id: str) -> None:
+        self.conn.execute(
+            "UPDATE inbound_messages SET consumed=0,prompted=0,consumed_by=NULL,consumed_at=NULL WHERE message_id=? AND (activity_id=? OR activity_id IS NULL)",
+            (message_id, activity_id),
+        )
+        self.conn.commit()
+
     def outbound_status(self, action_id: str) -> str | None:
         row = self.conn.execute("SELECT status FROM outbound_messages WHERE action_id=?", (action_id,)).fetchone()
         return row[0] if row else None

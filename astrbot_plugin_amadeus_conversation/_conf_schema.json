@@ -4,6 +4,7 @@
   "group_enabled": {"type": "bool", "default": false, "description": "接管群聊（仅在触发条件满足时）"},
   "group_autonomous": {"type": "bool", "default": false, "description": "群聊自主接管全部消息"},
   "group_trigger_words": {"type": "list", "default": [], "description": "群聊触发词"},
+  "group_cooldown_seconds": {"type": "int", "default": 0, "description": "群聊触发冷却秒数，0 表示不限制"},
   "platforms": {"type": "list", "default": ["aiocqhttp"], "description": "允许接管的平台"},
   "allowed_umos": {"type": "list", "default": [], "description": "非空时仅接管这些 UMO"},
   "max_agent_steps": {"type": "int", "default": 0, "description": "Agent 步数上限，0 表示不限制"},

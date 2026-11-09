@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+import time
 from pathlib import Path
 from typing import Any
 
@@ -27,6 +28,7 @@ class AmadeusConversationPlugin(star.Star):
         self.coordinator = Coordinator(self.db, self.config)
         self.runner_service = RunnerService(context, self.coordinator, self.config)
         self.coordinator.attach_runner_service(self.runner_service)
+        self._group_last_prompt: dict[str, float] = {}
 
     def _message(self, event: AstrMessageEvent) -> IncomingMessage:
         obj = getattr(event, "message_obj", None)
@@ -72,7 +74,15 @@ class AmadeusConversationPlugin(star.Star):
         if not bool(self.config.get("group_enabled" if is_group else "private_enabled", not is_group)):
             return False
         if is_group and not bool(self.config.get("group_autonomous", False)):
-            return self._group_triggered(event)
+            if not self._group_triggered(event):
+                return False
+            cooldown = int(self.config.get("group_cooldown_seconds", 0))
+            if cooldown > 0:
+                last = self._group_last_prompt.get(event.unified_msg_origin, 0.0)
+                now = time.time()
+                if now - last < cooldown:
+                    return False
+                self._group_last_prompt[event.unified_msg_origin] = now
         return True
 
     @filter.command("amadeus")

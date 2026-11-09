@@ -168,6 +168,10 @@ class Coordinator:
             )
         activity.seen_message_ids.add(message.message_id)
 
+    def requeue_message(self, message: IncomingMessage, activity: Activity) -> None:
+        if hasattr(self.db, "requeue_message"):
+            self.db.requeue_message(message.message_id, activity.activity_id)
+
     def requeue_followups(self, activity: Activity) -> None:
         for message_id, ticket in list(activity.follow_up_tickets.items()):
             if getattr(ticket, "consumed", False):
