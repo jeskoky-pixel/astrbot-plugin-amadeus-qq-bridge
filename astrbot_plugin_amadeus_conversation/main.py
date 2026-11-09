@@ -71,13 +71,17 @@ class AmadeusConversationPlugin(star.Star):
         if allowed and event.unified_msg_origin not in allowed:
             return False
         is_group = bool(event.get_group_id())
-        if not bool(self.config.get("group_enabled" if is_group else "private_enabled", not is_group)):
+        if not bool(self.config.get("group_enabled" if is_group else "private_enabled", True)):
             return False
         if is_group and not bool(self.config.get("group_autonomous", False)):
             if not self._group_triggered(event):
                 return False
             cooldown = int(self.config.get("group_cooldown_seconds", 0))
             if cooldown > 0:
+                # Once a group already has an Activity, explicit @/reply/trigger
+                # messages must reach its FIFO even during cooldown.
+                if self.coordinator.get(event.unified_msg_origin) is not None:
+                    return True
                 last = self._group_last_prompt.get(event.unified_msg_origin, 0.0)
                 now = time.time()
                 if now - last < cooldown:

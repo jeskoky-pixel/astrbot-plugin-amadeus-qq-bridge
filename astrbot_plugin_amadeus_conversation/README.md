@@ -5,7 +5,7 @@
 回复后仍保持可继续状态，并把下一条消息重新交给同一个 Activity。
 
 把 `astrbot_plugin_amadeus_conversation` 目录复制到 AstrBot 的
-`data/plugins/`，重启实例后在插件配置中启用。群聊默认关闭；只有 @机器人、
+`data/plugins/`，重启实例后在插件配置中启用。群聊默认开启；只有 @机器人、
 回复机器人或命中 `group_trigger_words` 时才接管，也可以显式开启
 `group_autonomous`。
 
@@ -24,7 +24,7 @@
 
 ## 配置要点
 
-`group_enabled` 默认是 `false`。如需无限等待用户，把
+`group_enabled` 默认是 `true`。如需无限等待用户，把
 `wait_timeout_seconds` 设为 `0`；如需恢复重启后的会话，保持
 `resume_after_restart` 为 `true`。
 

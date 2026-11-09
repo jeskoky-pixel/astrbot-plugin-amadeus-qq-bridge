@@ -1,7 +1,7 @@
 {
   "enabled": {"type": "bool", "default": true, "description": "启用连续 Activity"},
   "private_enabled": {"type": "bool", "default": true, "description": "接管私聊"},
-  "group_enabled": {"type": "bool", "default": false, "description": "接管群聊（仅在触发条件满足时）"},
+  "group_enabled": {"type": "bool", "default": true, "description": "接管群聊（默认开启，按触发条件响应）"},
   "group_autonomous": {"type": "bool", "default": false, "description": "群聊自主接管全部消息"},
   "group_trigger_words": {"type": "list", "default": [], "description": "群聊触发词"},
   "group_cooldown_seconds": {"type": "int", "default": 0, "description": "群聊触发冷却秒数，0 表示不限制"},
