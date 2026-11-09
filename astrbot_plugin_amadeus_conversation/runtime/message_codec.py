@@ -9,6 +9,8 @@ independent from the runner so it can also be tested without a live platform.
 from __future__ import annotations
 
 import json
+import os
+from pathlib import Path
 from enum import Enum
 from typing import Any
 
@@ -81,17 +83,11 @@ def build_message_chain(text: str = "", segments: list[dict[str, Any]] | None = 
     reply, json, forward and raw component-like dictionaries.  Unsupported
     segments are represented as text so a message is never silently lost.
     """
-    from astrbot.core.message.components import (
-        At,
-        File,
-        Forward,
-        Image,
-        Json,
-        Plain,
-        Record,
-        Reply,
-        Video,
-    )
+    from ..compat.astrbot_4294 import message_components
+
+    components = message_components()
+    At, File, Forward, Image = (components[name] for name in ("At", "File", "Forward", "Image"))
+    Json, Plain, Record, Reply, Video = (components[name] for name in ("Json", "Plain", "Record", "Reply", "Video"))
 
     chain: list[Any] = []
     if text and text.strip():
@@ -141,4 +137,54 @@ def build_message_chain(text: str = "", segments: list[dict[str, Any]] | None = 
         else:
             chain.append(Plain(str(data.get("text") or raw)))
     return chain
+
+
+def validate_segment_specs(
+    segments: list[dict[str, Any]] | None,
+    *,
+    media_roots: list[str] | None = None,
+    allowed_hosts: list[str] | None = None,
+    max_media_bytes: int = 20 * 1024 * 1024,
+) -> list[str]:
+    """Validate model supplied media before constructing a platform message."""
+    errors: list[str] = []
+    roots = [os.path.abspath(os.path.expanduser(root)) for root in (media_roots or [])]
+    hosts = {str(host).lower() for host in (allowed_hosts or [])}
+    for index, raw in enumerate(segments or []):
+        if not isinstance(raw, dict):
+            errors.append(f"segments[{index}] must be an object")
+            continue
+        typ = str(raw.get("type", "plain")).lower()
+        data = _data(raw)
+        if typ in {"text", "plain", "at", "reply", "json", "forward"}:
+            if typ == "reply" and not str(data.get("id") or data.get("message_id") or "").strip():
+                errors.append(f"segments[{index}] reply id is required")
+            continue
+        source = _source(data)
+        if not source:
+            errors.append(f"segments[{index}] media source is empty")
+            continue
+        if source.startswith("base64://"):
+            if len(source) > max_media_bytes * 2:
+                errors.append(f"segments[{index}] base64 media is too large")
+            continue
+        if source.startswith(("http://", "https://")):
+            from urllib.parse import urlparse
+
+            host = (urlparse(source).hostname or "").lower()
+            if hosts and host not in hosts:
+                errors.append(f"segments[{index}] host is not allowlisted")
+            continue
+        path = os.path.abspath(os.path.expanduser(source))
+        if not roots or not any(path == root or path.startswith(root + os.sep) for root in roots):
+            errors.append(f"segments[{index}] local path is outside media_roots")
+            continue
+        try:
+            if not os.path.isfile(path):
+                errors.append(f"segments[{index}] local file does not exist")
+            elif os.path.getsize(path) > max_media_bytes:
+                errors.append(f"segments[{index}] local media is too large")
+        except OSError as exc:
+            errors.append(f"segments[{index}] local media cannot be checked: {exc}")
+    return errors
 

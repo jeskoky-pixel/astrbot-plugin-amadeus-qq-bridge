@@ -1,7 +1,7 @@
 name: astrbot_plugin_amadeus_conversation
 display_name: Amadeus QQ Bridge
 desc: QQ 群聊与私聊的连续 Agent Activity，支持富消息、自动续聊、重启恢复和停止。
-version: 0.2.0
+version: 0.3.0
 author: Amadeus
 repo: https://github.com/jeskoky-pixel/astrbot-plugin-amadeus-qq-bridge
 astrbot_version: ">=4.29.4,<4.30.0"

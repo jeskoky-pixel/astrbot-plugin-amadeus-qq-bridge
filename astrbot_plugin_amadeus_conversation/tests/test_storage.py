@@ -19,3 +19,15 @@ class StorageTests(unittest.TestCase):
             self.assertEqual(transcript.count("user: hello"), 1)
             db.close()
 
+    def test_message_ids_are_scoped_to_umo_and_have_durable_seq(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            db = ActivityDatabase(Path(tmp) / "activities.sqlite3")
+            db.inbound_once(IncomingMessage("same", "q:1", "u", "one"), "a")
+            db.inbound_once(IncomingMessage("same", "q:2", "u", "two"), "b")
+            self.assertEqual(db.latest_seq("q:1"), 1)
+            self.assertEqual(db.latest_seq("q:2"), 1)
+            self.assertEqual(db.claim_next_pending("q:1", "a")["text"], "one")
+            db.mark_consumed("same", "a")
+            self.assertEqual(db.pending_after("q:1", "a", 0), [])
+            db.close()
+

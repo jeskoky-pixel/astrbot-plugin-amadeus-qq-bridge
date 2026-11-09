@@ -1,10 +1,13 @@
 {
   "enabled": {"type": "bool", "default": true, "description": "启用连续 Activity"},
   "private_enabled": {"type": "bool", "default": true, "description": "接管私聊"},
-  "group_enabled": {"type": "bool", "default": true, "description": "接管群聊（默认开启）"},
+  "group_enabled": {"type": "bool", "default": false, "description": "接管群聊（仅在触发条件满足时）"},
+  "group_autonomous": {"type": "bool", "default": false, "description": "群聊自主接管全部消息"},
+  "group_trigger_words": {"type": "list", "default": [], "description": "群聊触发词"},
+  "platforms": {"type": "list", "default": ["aiocqhttp"], "description": "允许接管的平台"},
   "allowed_umos": {"type": "list", "default": [], "description": "非空时仅接管这些 UMO"},
   "max_agent_steps": {"type": "int", "default": 0, "description": "Agent 步数上限，0 表示不限制"},
-  "tool_call_timeout": {"type": "int", "default": 120},
+  "tool_call_timeout": {"type": "int", "default": 86400, "description": "工具调用超时秒数"},
   "wait_timeout_seconds": {"type": "int", "default": 0, "description": "等待用户超时秒数，0 表示一直等待"},
   "max_activity_seconds": {"type": "int", "default": 0, "description": "Activity 生命周期上限，0 表示不限制"},
   "max_follow_up_messages": {"type": "int", "default": 0, "description": "连续消息上限，0 表示不限制"},
@@ -12,4 +15,7 @@
   "max_context_length": {"type": "int", "default": -1, "description": "上下文轮数，-1 表示不限制"},
   "resume_after_restart": {"type": "bool", "default": true, "description": "重启后恢复同一 Activity"},
   "resume_history_messages": {"type": "int", "default": 120, "description": "恢复时带入的历史消息数量"}
+  ,"media_roots": {"type": "list", "default": [], "description": "允许出站媒体访问的本地目录"}
+  ,"allowed_media_hosts": {"type": "list", "default": [], "description": "允许出站媒体访问的 URL 主机，空列表允许 HTTP(S)"}
+  ,"max_media_bytes": {"type": "int", "default": 20971520, "description": "单个出站媒体最大字节数"}
 }

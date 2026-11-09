@@ -1,7 +1,10 @@
 import unittest
+import tempfile
+from pathlib import Path
 
 from astrbot_plugin_amadeus_conversation.runtime.activity import Activity, IncomingMessage
 from astrbot_plugin_amadeus_conversation.runtime.coordinator import Coordinator
+from astrbot_plugin_amadeus_conversation.storage.database import ActivityDatabase
 
 
 class FakeRunner:
@@ -63,8 +66,8 @@ class LifecycleTests(unittest.IsolatedAsyncioTestCase):
     async def test_outbound_message_is_sent_once(self):
         c = Coordinator(FakeDB()); event = FakeEvent()
         a = c.create(event, IncomingMessage("1", "q", "u", "hello"))
-        self.assertEqual((await c.send_once(a, "progress", "intermediate"))["status"], "sent")
-        self.assertEqual((await c.send_once(a, "progress", "intermediate"))["status"], "duplicate")
+        self.assertEqual((await c.send_once(a, "progress", "intermediate", action_id="a1"))["status"], "sent")
+        self.assertEqual((await c.send_once(a, "progress", "intermediate", action_id="a1"))["status"], "duplicate")
         self.assertEqual(event.sent, ["progress"])
 
     async def test_stop_requests_runner_and_marks_activity(self):
@@ -73,3 +76,16 @@ class LifecycleTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(a.phase, "stopping")
         self.assertTrue(a.cancel_event.is_set())
         self.assertTrue(a.runner.stopped)
+
+    async def test_wait_is_cancelled_without_timeout(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            db = ActivityDatabase(Path(tmp) / "activities.sqlite3")
+            c = Coordinator(db, {"wait_timeout_seconds": 0})
+            first = IncomingMessage("1", "q", "u", "hello")
+            a = c.create(object(), first)
+            c.mark_consumed(first, a)
+            task = __import__("asyncio").create_task(c.wait_for_user(a, 0))
+            await __import__("asyncio").sleep(0)
+            await c.stop(a, "test")
+            self.assertEqual(await task, [])
+            db.close()
